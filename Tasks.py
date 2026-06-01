@@ -1,20 +1,32 @@
 import datetime
-import time
+import json
 
 FILENAME = 'test.json'
 
 class Task:
     """A task object with all attributes"""
-    def __init__(self, task_id, description):
+    def __init__(self, task_id, description, status='to-do', createdAt=datetime.datetime.now(), updatedAt=datetime.datetime.now()):
         self.task_id = task_id
         self.description = description
-        self.status = 'to-do'
-        self.createdAt =datetime.datetime.now()
-        self.updatedAt = datetime.datetime.now()
+        self.status = status
+        self.createdAt =createdAt
+        self.updatedAt = updatedAt
 
-    def __str__(self):
-        return (f'{self.task_id}, {self.description},'
-                f'{self.status}, {self.createdAt}, {self.updatedAt}')
+    def to_dict(self):
+        return {
+            'task_id':self.task_id,
+            'description':self.description,
+            'status':self.status,
+            'createdAt':self.createdAt.isoformat(),
+            'updatedAt':self.updatedAt.isoformat()
+        }
+
+    def __repr__(self):
+        return (
+            f"Task(id={self.task_id}, "
+            f"description='{self.description}', "
+            f"status='{self.status}')"
+        )
 
 
 
@@ -45,6 +57,7 @@ class Tasks:
         for task in self.tasks:
             if task.task_id == task_id:
                 task.description = description
+                task.updatedAt = datetime.datetime.now()
 
     def delete_task(self, task_id):
         for task in self.tasks:
@@ -59,11 +72,12 @@ class Tasks:
 
     def save_to_file(self):
         with open(FILENAME, 'w') as f:
-            for task in self.tasks:
-                print(task, file=f)
+            json.dump([task.to_dict() for task in self.tasks], f, indent=4)
 
     def is_validate_id(self, task_id):
         return task_id in [task.task_id for task in self.tasks]
 
     def calc_undone_tasks(self):
         return len([task for task in self.tasks if task.status != 'done'])
+
+
